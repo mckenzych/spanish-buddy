@@ -1,0 +1,4 @@
+project_id = "tmwkmiixjdnyvpakbbis"
+
+[functions.spanish-tutor]
+verify_jwt = false
