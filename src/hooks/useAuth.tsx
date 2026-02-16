@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getLanguageConfig } from "@/lib/languages";
+import type { TargetLanguage } from "@/lib/languages";
 
 interface Profile {
   id: string;
@@ -13,6 +15,7 @@ interface Profile {
   xp_points: number;
   streak_days: number;
   last_activity_date: string | null;
+  target_language: TargetLanguage;
 }
 
 interface AuthContextType {
@@ -50,14 +53,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to avoid potential race conditions
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
@@ -70,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -97,9 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     toast({
       title: "Check your email!",
@@ -113,23 +111,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
+    const lang = getLanguageConfig(profile?.target_language || "spanish");
     toast({
-      title: "¡Bienvenido!",
-      description: "Welcome back to Spanish Buddy!",
+      title: lang.welcomeBack,
+      description: "Welcome back to Language Buddy!",
     });
   };
 
   const signOut = async () => {
+    const lang = getLanguageConfig(profile?.target_language || "spanish");
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     
     setProfile(null);
     toast({
-      title: "¡Hasta luego!",
+      title: lang.goodbye,
       description: "See you next time!",
     });
   };
@@ -149,16 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        loading,
-        signUp,
-        signIn,
-        signOut,
-        updateProfile,
-      }}
+      value={{ user, session, profile, loading, signUp, signIn, signOut, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

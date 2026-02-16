@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LANGUAGE_LIST } from "@/lib/languages";
+import type { TargetLanguage } from "@/lib/languages";
 
 export default function Settings() {
   const { user, profile, updateProfile } = useAuth();
@@ -18,6 +20,7 @@ export default function Settings() {
   const [coachStyle, setCoachStyle] = useState(profile?.coach_style || "gentle");
   const [explainInEnglish, setExplainInEnglish] = useState(profile?.explain_in_english ?? true);
   const [speakingSpeed, setSpeakingSpeed] = useState(profile?.speaking_speed || "normal");
+  const [targetLanguage, setTargetLanguage] = useState<TargetLanguage>(profile?.target_language || "spanish");
 
   if (!user) {
     return (
@@ -40,6 +43,7 @@ export default function Settings() {
         coach_style: coachStyle,
         explain_in_english: explainInEnglish,
         speaking_speed: speakingSpeed,
+        target_language: targetLanguage,
       });
       toast({
         title: "Settings saved!",
@@ -64,11 +68,32 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
+        {/* Target Language */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Learning Language</CardTitle>
+            <CardDescription>Which language are you learning?</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={targetLanguage} onValueChange={(v) => setTargetLanguage(v as TargetLanguage)} className="space-y-3">
+              {LANGUAGE_LIST.map((lang) => (
+                <div key={lang.id} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
+                  <RadioGroupItem value={lang.id} id={`lang-${lang.id}`} />
+                  <Label htmlFor={`lang-${lang.id}`} className="flex-1 cursor-pointer">
+                    <div className="font-medium">{lang.flag} {lang.label}</div>
+                    <div className="text-sm text-muted-foreground">{lang.nativeName}</div>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         {/* Learning Level */}
         <Card>
           <CardHeader>
             <CardTitle>Learning Level</CardTitle>
-            <CardDescription>Choose your current Spanish proficiency</CardDescription>
+            <CardDescription>Choose your current proficiency</CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup value={level} onValueChange={setLevel} className="space-y-3">
@@ -76,27 +101,21 @@ export default function Settings() {
                 <RadioGroupItem value="beginner" id="beginner" />
                 <Label htmlFor="beginner" className="flex-1 cursor-pointer">
                   <div className="font-medium">🌱 Beginner</div>
-                  <div className="text-sm text-muted-foreground">
-                    New to Spanish or know a few words
-                  </div>
+                  <div className="text-sm text-muted-foreground">New or know a few words</div>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="intermediate" id="intermediate" />
                 <Label htmlFor="intermediate" className="flex-1 cursor-pointer">
                   <div className="font-medium">🌿 Intermediate</div>
-                  <div className="text-sm text-muted-foreground">
-                    Can have basic conversations
-                  </div>
+                  <div className="text-sm text-muted-foreground">Can have basic conversations</div>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="advanced" id="advanced" />
                 <Label htmlFor="advanced" className="flex-1 cursor-pointer">
                   <div className="font-medium">🌳 Advanced</div>
-                  <div className="text-sm text-muted-foreground">
-                    Comfortable but want to perfect my skills
-                  </div>
+                  <div className="text-sm text-muted-foreground">Comfortable but want to perfect my skills</div>
                 </Label>
               </div>
             </RadioGroup>
@@ -115,18 +134,14 @@ export default function Settings() {
                 <RadioGroupItem value="gentle" id="gentle" />
                 <Label htmlFor="gentle" className="flex-1 cursor-pointer">
                   <div className="font-medium">😊 Gentle</div>
-                  <div className="text-sm text-muted-foreground">
-                    Encouraging feedback with soft corrections
-                  </div>
+                  <div className="text-sm text-muted-foreground">Encouraging feedback with soft corrections</div>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="strict" id="strict" />
                 <Label htmlFor="strict" className="flex-1 cursor-pointer">
                   <div className="font-medium">📝 Strict</div>
-                  <div className="text-sm text-muted-foreground">
-                    Direct corrections with detailed explanations
-                  </div>
+                  <div className="text-sm text-muted-foreground">Direct corrections with detailed explanations</div>
                 </Label>
               </div>
             </RadioGroup>
@@ -145,27 +160,21 @@ export default function Settings() {
                 <RadioGroupItem value="slow" id="slow" />
                 <Label htmlFor="slow" className="flex-1 cursor-pointer">
                   <div className="font-medium">🐢 Slow</div>
-                  <div className="text-sm text-muted-foreground">
-                    Slower pace for careful listening
-                  </div>
+                  <div className="text-sm text-muted-foreground">Slower pace for careful listening</div>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="normal" id="normal" />
                 <Label htmlFor="normal" className="flex-1 cursor-pointer">
                   <div className="font-medium">🚶 Normal</div>
-                  <div className="text-sm text-muted-foreground">
-                    Natural conversational speed
-                  </div>
+                  <div className="text-sm text-muted-foreground">Natural conversational speed</div>
                 </Label>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="fast" id="fast" />
                 <Label htmlFor="fast" className="flex-1 cursor-pointer">
                   <div className="font-medium">🏃 Fast</div>
-                  <div className="text-sm text-muted-foreground">
-                    Challenge yourself with native speed
-                  </div>
+                  <div className="text-sm text-muted-foreground">Challenge yourself with native speed</div>
                 </Label>
               </div>
             </RadioGroup>
@@ -182,25 +191,16 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Show English explanations</p>
-                <p className="text-sm text-muted-foreground">
-                  Get grammar tips and corrections in English
-                </p>
+                <p className="text-sm text-muted-foreground">Get grammar tips and corrections in English</p>
               </div>
-              <Switch
-                checked={explainInEnglish}
-                onCheckedChange={setExplainInEnglish}
-              />
+              <Switch checked={explainInEnglish} onCheckedChange={setExplainInEnglish} />
             </div>
           </CardContent>
         </Card>
 
         {/* Save Button */}
         <Button onClick={handleSave} disabled={loading} className="w-full" size="lg">
-          {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
           Save Settings
         </Button>
       </div>

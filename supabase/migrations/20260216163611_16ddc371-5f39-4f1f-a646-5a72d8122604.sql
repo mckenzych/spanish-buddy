@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN target_language text DEFAULT 'spanish' NOT NULL;

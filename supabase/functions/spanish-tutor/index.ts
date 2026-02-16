@@ -13,6 +13,7 @@ interface ChatRequest {
   userLevel: string;
   coachStyle: string;
   explainInEnglish: boolean;
+  targetLanguage: string;
 }
 
 serve(async (req) => {
@@ -33,16 +34,15 @@ serve(async (req) => {
       conversationHistory = [], 
       userLevel = "beginner",
       coachStyle = "gentle",
-      explainInEnglish = true
+      explainInEnglish = true,
+      targetLanguage = "spanish",
     }: ChatRequest = await req.json();
 
-    // Build system prompt based on mode and settings
-    const systemPrompt = buildSystemPrompt(mode, topic, userLevel, coachStyle, explainInEnglish);
+    const systemPrompt = buildSystemPrompt(mode, topic, userLevel, coachStyle, explainInEnglish, targetLanguage);
 
-    // Prepare messages for AI
     const messages = [
       { role: "system", content: systemPrompt },
-      ...conversationHistory.slice(-10), // Keep last 10 messages for context
+      ...conversationHistory.slice(-10),
       { role: "user", content: message },
     ];
 
@@ -79,14 +79,14 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
+    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 
     return new Response(
       JSON.stringify({ reply }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Spanish tutor error:", error);
+    console.error("Tutor error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({ error: errorMessage }),
@@ -100,30 +100,39 @@ function buildSystemPrompt(
   topic: string, 
   userLevel: string, 
   coachStyle: string,
-  explainInEnglish: boolean
+  explainInEnglish: boolean,
+  targetLanguage: string,
 ): string {
-  const levelInstructions = {
+  const langNames: Record<string, string> = {
+    spanish: "Spanish",
+    french: "French",
+    italian: "Italian",
+    english: "English",
+  };
+  const langName = langNames[targetLanguage] || "Spanish";
+
+  const levelInstructions: Record<string, string> = {
     beginner: `
 - Use simple vocabulary and short sentences
-- Focus on present tense verbs (ser, estar, tener, ir)
+- Focus on present tense verbs and basic grammar
 - Emphasize basic greetings, numbers, and common phrases
-- Avoid complex grammar like subjunctive
+- Avoid complex grammar
 `,
     intermediate: `
 - Use more varied vocabulary
-- Include past tense (preterite and imperfect basics)
-- Introduce common connectors (porque, entonces, aunque)
+- Include past tense basics
+- Introduce common connectors
 - Can discuss more abstract topics
 `,
     advanced: `
 - Use sophisticated vocabulary and idioms
-- Include all tenses including subjunctive
+- Include all tenses including subjunctive/conditional
 - Discuss complex topics naturally
 - Minimal simplification needed
 `,
   };
 
-  const topicContext = {
+  const topicContext: Record<string, string> = {
     general: "general conversation practice",
     travel: "travel, directions, transportation, and tourism",
     food: "food, restaurants, ordering, and cooking",
@@ -132,29 +141,30 @@ function buildSystemPrompt(
     daily: "daily routine, work, school, and hobbies",
   };
 
-  const basePrompt = `You are Spanish Buddy, a friendly and encouraging Spanish language tutor. Your primary language of instruction is Spanish, with English support when needed.
+  const basePrompt = `You are Language Buddy, a friendly and encouraging ${langName} language tutor. Your primary language of instruction is ${langName}, with English support when needed.
 
+**Target Language:** ${langName}
 **User Level:** ${userLevel}
-${levelInstructions[userLevel as keyof typeof levelInstructions] || levelInstructions.beginner}
+${levelInstructions[userLevel] || levelInstructions.beginner}
 
-**Current Topic:** ${topicContext[topic as keyof typeof topicContext] || "general conversation"}
+**Current Topic:** ${topicContext[topic] || "general conversation"}
 
 **Coach Style:** ${coachStyle === "strict" ? "Direct and detailed corrections" : "Encouraging with gentle corrections"}
 
-**Language Preference:** ${explainInEnglish ? "Include brief English explanations when helpful" : "Respond primarily in Spanish"}
+**Language Preference:** ${explainInEnglish ? "Include brief English explanations when helpful" : `Respond primarily in ${langName}`}
 `;
 
   if (mode === "coach") {
     return basePrompt + `
 **MODE: COACH (Correction Mode)**
 
-When the user writes in Spanish, ALWAYS respond with this structure:
-1. ✅ **Versión corregida:** [corrected version if needed, or "¡Perfecto!" if correct]
-2. 🛠 **Qué cambiar:** [1-2 bullet points explaining key corrections, if any]
-3. 🔁 **Intenta otra vez:** [give a similar sentence for them to try]
+When the user writes in ${langName}, ALWAYS respond with this structure:
+1. ✅ **Corrected version:** [corrected version if needed, or "Perfect!" if correct]
+2. 🛠 **What to change:** [1-2 bullet points explaining key corrections, if any]
+3. 🔁 **Try again:** [give a similar sentence for them to try]
 4. ❓ [Ask a follow-up question to continue the conversation]
 
-If the user writes in English asking about Spanish:
+If the user writes in English asking about ${langName}:
 - Provide the translation
 - Explain any grammar points briefly
 - Give a practice sentence
@@ -164,7 +174,7 @@ Keep responses concise but educational. Celebrate progress with emojis!`;
     return basePrompt + `
 **MODE: FREE CHAT (Natural Conversation)**
 
-Have a natural conversation in Spanish. DO NOT correct mistakes unless the user explicitly asks (e.g., "correct me", "was that right?", "¿está bien?").
+Have a natural conversation in ${langName}. DO NOT correct mistakes unless the user explicitly asks.
 
 Guidelines:
 - Keep the conversation flowing naturally
