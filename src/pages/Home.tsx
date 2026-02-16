@@ -13,6 +13,7 @@ import {
   Globe
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { getLanguageConfig } from "@/lib/languages";
 
 const features = [
   {
@@ -32,7 +33,7 @@ const features = [
   {
     icon: Mic,
     title: "Pronunciation Practice",
-    description: "Speak Spanish and get instant feedback on your pronunciation with speech recognition.",
+    description: "Speak and get instant feedback on your pronunciation with speech recognition.",
     color: "text-streak",
     bg: "bg-streak/10",
   },
@@ -46,13 +47,14 @@ const features = [
 ];
 
 const stats = [
-  { value: "4", label: "Learning Units", icon: BookOpen },
+  { value: "4", label: "Languages", icon: Globe },
   { value: "∞", label: "Practice Sessions", icon: Zap },
   { value: "AI", label: "Powered Tutor", icon: Sparkles },
 ];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const lang = getLanguageConfig(profile?.target_language || "spanish");
 
   return (
     <div className="flex flex-col">
@@ -63,11 +65,11 @@ export default function Home() {
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
-              AI-Powered Spanish Learning
+              AI-Powered Language Learning
             </div>
             
             <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Learn Spanish the
+              Learn Languages the
               <span className="relative mx-2">
                 <span className="relative z-10 text-primary">Smart</span>
                 <svg
@@ -89,9 +91,9 @@ export default function Home() {
             </h1>
             
             <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-              Master Spanish with interactive lessons, AI chat tutoring, and real-time 
-              pronunciation feedback. Built for balanced learning: reading, writing, 
-              listening, and speaking.
+              Master {lang.label}, French, Italian, English & more with interactive lessons, 
+              AI chat tutoring, and real-time pronunciation feedback. Balanced learning: 
+              reading, writing, listening, and speaking.
             </p>
             
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -133,7 +135,7 @@ export default function Home() {
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-3xl font-bold md:text-4xl">
-              Everything You Need to Learn Spanish
+              Everything You Need to Learn a New Language
             </h2>
             <p className="mt-4 text-muted-foreground">
               Balanced skill development with modern AI technology
@@ -166,10 +168,10 @@ export default function Home() {
             <CardContent className="relative z-10 p-8 md:p-12 text-center">
               <Users className="mx-auto mb-4 h-12 w-12 opacity-80" />
               <h2 className="font-display text-2xl font-bold md:text-3xl">
-                Ready to Start Your Spanish Journey?
+                Ready to Start Your Language Journey?
               </h2>
               <p className="mt-4 text-white/80 max-w-xl mx-auto">
-                Join thousands of learners improving their Spanish every day. 
+                Join thousands of learners improving their language skills every day. 
                 No credit card required — start learning for free!
               </p>
               <Link to={user ? "/learn" : "/auth?mode=signup"}>

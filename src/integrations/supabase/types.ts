@@ -160,6 +160,7 @@ export type Database = {
           level: string | null
           speaking_speed: string | null
           streak_days: number | null
+          target_language: string
           updated_at: string | null
           xp_points: number | null
         }
@@ -173,6 +174,7 @@ export type Database = {
           level?: string | null
           speaking_speed?: string | null
           streak_days?: number | null
+          target_language?: string
           updated_at?: string | null
           xp_points?: number | null
         }
@@ -186,6 +188,7 @@ export type Database = {
           level?: string | null
           speaking_speed?: string | null
           streak_days?: number | null
+          target_language?: string
           updated_at?: string | null
           xp_points?: number | null
         }

@@ -11,10 +11,13 @@ import {
   Flame,
   Zap,
   Menu,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { LANGUAGE_LIST, getLanguageConfig } from "@/lib/languages";
+import type { TargetLanguage } from "@/lib/languages";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,16 +36,24 @@ const navLinks = [
 
 export function Navbar() {
   const location = useLocation();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, updateProfile } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const currentLang = getLanguageConfig(profile?.target_language || "spanish");
+
+  const handleLanguageChange = async (lang: TargetLanguage) => {
+    if (user) {
+      await updateProfile({ target_language: lang });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold">
-          <span className="text-2xl">🇪🇸</span>
-          <span className="text-primary">Spanish</span>
+          <span className="text-2xl">🌍</span>
+          <span className="text-primary">Language</span>
           <span className="text-foreground">Buddy</span>
         </Link>
 
@@ -66,8 +77,47 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Right side - Stats & Auth */}
+        {/* Right side - Language Switcher, Stats & Auth */}
         <div className="flex items-center gap-3">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <span className="text-lg">{currentLang.flag}</span>
+                <span className="hidden sm:inline text-sm">{currentLang.label}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <div className="px-2 py-1.5">
+                <p className="text-xs text-muted-foreground font-medium">Learning language</p>
+              </div>
+              <DropdownMenuSeparator />
+              {LANGUAGE_LIST.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.id}
+                  onClick={() => handleLanguageChange(lang.id)}
+                  className={`cursor-pointer gap-3 ${
+                    currentLang.id === lang.id ? "bg-primary/10 text-primary" : ""
+                  }`}
+                >
+                  <span className="text-lg">{lang.flag}</span>
+                  <div className="flex-1">
+                    <span className="font-medium">{lang.label}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{lang.nativeName}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+              {!user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5">
+                    <p className="text-xs text-muted-foreground">Sign in to save your language</p>
+                  </div>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {user && profile && (
             <div className="hidden sm:flex items-center gap-3 mr-2">
               <div className="flex items-center gap-1 text-sm font-medium text-streak">
@@ -95,14 +145,10 @@ export function Navbar() {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/settings" className="cursor-pointer">
-                    Settings
-                  </Link>
+                  <Link to="/settings" className="cursor-pointer">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/progress" className="cursor-pointer">
-                    My Progress
-                  </Link>
+                  <Link to="/progress" className="cursor-pointer">My Progress</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
@@ -114,9 +160,7 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/auth">
-                <Button variant="ghost" size="sm">
-                  Sign in
-                </Button>
+                <Button variant="ghost" size="sm">Sign in</Button>
               </Link>
               <Link to="/auth?mode=signup">
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -146,11 +190,7 @@ export function Navbar() {
               const Icon = link.icon;
               const isActive = location.pathname === link.to;
               return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                <Link key={link.to} to={link.to} onClick={() => setMobileMenuOpen(false)}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
                     className={`w-full justify-start gap-3 ${isActive ? "bg-primary/10 text-primary" : ""}`}
